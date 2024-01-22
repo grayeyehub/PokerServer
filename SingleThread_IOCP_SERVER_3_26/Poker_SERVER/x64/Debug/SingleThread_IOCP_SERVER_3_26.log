@@ -1,0 +1,10 @@
+﻿  IOCP_MAIN_SERVER.cpp
+C:\Users\gkaqj\Desktop\git\GSP\SingleThread_IOCP_SERVER_3_26\SingleThread_IOCP_SERVER_3_26\IOCP_MAIN_SERVER.cpp(110,56): error C2664: 'std::lock_guard<std::mutex>::lock_guard(const std::lock_guard<std::mutex> &)': 인수 1을(를) 'void'에서 '_Mutex &'(으)로 변환할 수 없습니다.
+          with
+          [
+              _Mutex=std::mutex
+          ]
+C:\Users\gkaqj\Desktop\git\GSP\SingleThread_IOCP_SERVER_3_26\SingleThread_IOCP_SERVER_3_26\IOCP_MAIN_SERVER.cpp(110,53): message : void 형식의 식을 다른 형식으로 변환할 수 없습니다.
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\mutex(430,5): message : 'std::lock_guard<std::mutex>::lock_guard' 선언을 참조하십시오.
+C:\Users\gkaqj\Desktop\git\GSP\SingleThread_IOCP_SERVER_3_26\SingleThread_IOCP_SERVER_3_26\IOCP_MAIN_SERVER.cpp(166,40): error C2440: '초기화 중': 'initializer list'에서 'std::lock_guard<std::mutex>'(으)로 변환할 수 없습니다.
+C:\Users\gkaqj\Desktop\git\GSP\SingleThread_IOCP_SERVER_3_26\SingleThread_IOCP_SERVER_3_26\IOCP_MAIN_SERVER.cpp(166,40): message : 소스 형식을 가져올 수 있는 생성자가 없거나 생성자 오버로드 확인이 모호합니다.
