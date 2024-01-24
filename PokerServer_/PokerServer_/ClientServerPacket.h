@@ -14,20 +14,20 @@ void display_error(const char* msg, int err_no)
     LocalFree(lpMsgBuf);
 }
 
-void send_packet(int p_id, void* p)
+void send_packet(int Packet_id, void* pPacket)
 {
-    int p_size = reinterpret_cast<unsigned char*>(p)[0];
-    int p_type = reinterpret_cast<unsigned char*>(p)[1];
-    cout << "To client [ " << p_id << "] : ";//디버깅용 (나중에 삭제해야함)
+    int p_size = reinterpret_cast<unsigned char*>(pPacket)[0];
+    int p_type = reinterpret_cast<unsigned char*>(pPacket)[1];
+    cout << "To client [ " << Packet_id << "] : ";//디버깅용 (나중에 삭제해야함)
     cout << "Packet [" << p_type << "]\n";
 
     EX_OVER* s_over = new EX_OVER; //로컬 변수로 절때 하지말것 send계속 사용할것이니
     s_over->m_op = OP_SEND;
     memset(&s_over->m_over, 0, sizeof(s_over->m_over));
-    memcpy(s_over->m_packetbuf, p, p_size);
+    memcpy(s_over->m_packetbuf, pPacket, p_size);
     s_over->m_wsabuf[0].buf = reinterpret_cast<CHAR*>(s_over->m_packetbuf);
     s_over->m_wsabuf[0].len = p_size;
-    auto ret = WSASend(players[p_id].m_socket, s_over->m_wsabuf, 1, NULL, 0, &s_over->m_over, 0);
+    auto ret = WSASend(players[Packet_id].m_socket, s_over->m_wsabuf, 1, NULL, 0, &s_over->m_over, 0);
     if (0 != ret) {
         auto err_no = WSAGetLastError();
         if (WSA_IO_PENDING != err_no)
@@ -36,27 +36,22 @@ void send_packet(int p_id, void* p)
 }
 
 
-void send_login_ok_packet(int p_id)
+void send_login_ok_packet(int Packet_id)
 {
-    s2c_login_ok p;
-    p.hp = 10;
-    p.id = p_id;
-    p.level = 2;
-    p.race = 1;
-    p.size = sizeof(p);
-    p.type = S2C_LOGIN_OK;
-    p.x = players[p_id].x;
-    p.y = players[p_id].y;
-    send_packet(p_id, &p);
+    s2c_login_ok PacketLoginOk;
+    PacketLoginOk.id = Packet_id;
+    PacketLoginOk.size = sizeof(PacketLoginOk);
+    PacketLoginOk.type = S2C_LOGIN_OK;
+    send_packet(Packet_id, &PacketLoginOk);
 }
 
-void do_recv(int s_id)
+void do_recv(int Packet_id)
 {
-    players[s_id].m_recv_over.m_wsabuf[0].buf = reinterpret_cast<char*>(players[s_id].m_recv_over.m_packetbuf) + players[s_id].m_prev_size;
-    players[s_id].m_recv_over.m_wsabuf[0].len = MAX_BUFFER - players[s_id].m_prev_size;
-    memset(&players[s_id].m_recv_over.m_over, 0, sizeof(players[s_id].m_recv_over.m_over));
+    players[Packet_id].m_recv_over.m_wsabuf[0].buf = reinterpret_cast<char*>(players[Packet_id].m_recv_over.m_packetbuf) + players[Packet_id].m_prev_size;
+    players[Packet_id].m_recv_over.m_wsabuf[0].len = MAX_BUFFER - players[Packet_id].m_prev_size;
+    memset(&players[Packet_id].m_recv_over.m_over, 0, sizeof(players[Packet_id].m_recv_over.m_over));
     DWORD r_flag = 0;
-    auto ret = WSARecv(players[s_id].m_socket, players[s_id].m_recv_over.m_wsabuf, 1, NULL, &r_flag, &players[s_id].m_recv_over.m_over, NULL);
+    auto ret = WSARecv(players[Packet_id].m_socket, players[Packet_id].m_recv_over.m_wsabuf, 1, NULL, &r_flag, &players[Packet_id].m_recv_over.m_over, NULL);
 
     if (0 != ret) {
         auto err_no = WSAGetLastError();
@@ -68,7 +63,7 @@ void do_recv(int s_id)
 int get_new_player_id(SOCKET p_socket)
 {
     for (int i = SERVER_ID + 1; i < MAX_USER; ++i) {
-        lock_guard<mutex>gl{ players[i].m_slock.lock() }; // lock_guard는 자동으로 언락을 해준다.
+        lock_guard<mutex>gl{ players[i].m_slock }; // lock_guard는 자동으로 언락을 해준다.
         if (PL_ST_FREE == players[i].m_state) {
             players[i].m_state = PL_ST_CONNECTED;
             players[i].m_socket = p_socket;
@@ -80,6 +75,24 @@ int get_new_player_id(SOCKET p_socket)
     return -1;
 }
 
+void send_add_player(int Client_id, int Pakcet_id)
+{
+    s2c_add_player PacketAddPlayer;
+    PacketAddPlayer.id = Pakcet_id;
+    PacketAddPlayer.size = sizeof(PacketAddPlayer);
+    PacketAddPlayer.type = S2C_ADD_PLAYER;
+    send_packet(Client_id, &PacketAddPlayer);
+}
+void send_remove_player(int Client_id, int Pakcet_id)
+{
+    s2c_remove_player PacketRem;
+    p.id = Pakcet_id;
+    p.size = sizeof(p);
+    p.type = S2C_REMOVE_PLAYER;
+
+    send_packet(Client_id, &p);
+}
+
 void send_move_packet(int c_id, int p_id)
 {
     s2c_move_player p;
@@ -89,47 +102,6 @@ void send_move_packet(int c_id, int p_id)
     p.x = players[p_id].x;
     p.y = players[p_id].y;
     send_packet(c_id, &p);
-}
-void send_add_player(int c_id, int p_id)
-{
-    s2c_add_player p;
-    p.id = p_id;
-    p.size = sizeof(p);
-    p.type = S2C_ADD_PLAYER;
-    p.x = players[p_id].x;
-    p.y = players[p_id].y;
-    send_packet(c_id, &p);
-}
-void send_remove_player(int c_id, int p_id)
-{
-    s2c_remove_player p;
-    p.id = p_id;
-    p.size = sizeof(p);
-    p.type = S2C_REMOVE_PLAYER;
-
-    send_packet(c_id, &p);
-}
-
-void do_move(int p_id, DIRECTION dir)
-{
-    auto& x = players[p_id].x;
-    auto& y = players[p_id].y;
-    switch (dir)
-    {
-    case D_N: if (y > 0)y--; break;
-    case D_S: if (y < (WORLD_Y_SIZE - 1))y++; break;
-    case D_W: if (x > 0)x--; break;
-    case D_E: if (x < (WORLD_X_SIZE - 1))x++; break;
-
-    }
-
-    for (auto& pl : players) {
-        lock_guard<mutex>gl{ pl.m_state };
-        if (PL_ST_INGAME == pl.m_state)
-            send_move_packet(pl.id, p_id);
-
-
-    }
 }
 
 void proccess_packet(int p_id, unsigned char* p_buf) {

@@ -38,9 +38,6 @@ struct s2c_login_ok {
 	unsigned char size;
 	unsigned char type;
 	int id;
-	short x, y;
-	int hp, level;
-	int race; // Á¾Á·
 
 };
 
@@ -48,8 +45,6 @@ struct s2c_add_player {
 	unsigned char size;
 	unsigned char type;
 	int id;
-	short x, y;
-	int race;
 	char name[MAX_NAME];
 
 };
@@ -58,8 +53,6 @@ struct s2c_move_player {
 	unsigned char size;
 	unsigned char type;
 	int id;
-	short x, y;
-
 
 };
 struct s2c_remove_player {

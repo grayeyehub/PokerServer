@@ -1,5 +1,4 @@
-﻿#include "plotocol.h"
-#include "TableStruct.h"
+﻿#include "ClientServerPacket.h"
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "MSWSock.lib")
 
