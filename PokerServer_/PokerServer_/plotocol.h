@@ -16,12 +16,14 @@ constexpr short SERVER_PORT   =    3500;
 constexpr int MAX_USER = 100;
 
 
-constexpr unsigned char C2S_LOGIN  = 1;
-constexpr unsigned char C2S_MOVE = 2;
-constexpr unsigned char S2C_LOGIN_OK = 3;
-constexpr unsigned char S2C_ADD_PLAYER = 4;
-constexpr unsigned char S2C_MOVE_PLAYER = 5;
-constexpr unsigned char S2C_REMOVE_PLAYER = 6;
+constexpr unsigned char C2S_Req_Login  = 1;
+constexpr unsigned char C2S_Req_DrawCard = 2;
+
+constexpr unsigned char S2C_Ack_Login_OK = 3;
+constexpr unsigned char S2C_Ack_DrawCard = 4;
+
+constexpr unsigned char S2C_Add_Player = 5;
+constexpr unsigned char S2C_Result = 6;
 
 
 #pragma pack(push,1)
@@ -34,14 +36,24 @@ struct c2s_login {
 };
 
 
-struct s2c_login_ok {
+struct S2CAckLoginOK {
 	unsigned char size;
 	unsigned char type;
 	int id;
 
 };
 
-struct s2c_add_player {
+
+struct S2CAckDrawCard {
+	unsigned char size;
+	unsigned char type;
+	int id;
+	int CardNum;
+	int CardType;
+
+};
+
+struct S2CAddPlayer {
 	unsigned char size;
 	unsigned char type;
 	int id;
@@ -49,13 +61,7 @@ struct s2c_add_player {
 
 };
 
-struct s2c_move_player {
-	unsigned char size;
-	unsigned char type;
-	int id;
-
-};
-struct s2c_remove_player {
+struct S2CResult {
 	unsigned char size;
 	unsigned char type;
 	int id;

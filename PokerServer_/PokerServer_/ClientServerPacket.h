@@ -14,11 +14,11 @@ void display_error(const char* msg, int err_no)
     LocalFree(lpMsgBuf);
 }
 
-void send_packet(int Packet_id, void* pPacket)
+void send_packet(int Client_id, void* pPacket)
 {
     int p_size = reinterpret_cast<unsigned char*>(pPacket)[0];
     int p_type = reinterpret_cast<unsigned char*>(pPacket)[1];
-    cout << "To client [ " << Packet_id << "] : ";//디버깅용 (나중에 삭제해야함)
+    cout << "To client [ " << Client_id << "] : ";//디버깅용 (나중에 삭제해야함)
     cout << "Packet [" << p_type << "]\n";
 
     EX_OVER* s_over = new EX_OVER; //로컬 변수로 절때 하지말것 send계속 사용할것이니
@@ -27,7 +27,7 @@ void send_packet(int Packet_id, void* pPacket)
     memcpy(s_over->m_packetbuf, pPacket, p_size);
     s_over->m_wsabuf[0].buf = reinterpret_cast<CHAR*>(s_over->m_packetbuf);
     s_over->m_wsabuf[0].len = p_size;
-    auto ret = WSASend(players[Packet_id].m_socket, s_over->m_wsabuf, 1, NULL, 0, &s_over->m_over, 0);
+    auto ret = WSASend(players[Client_id].m_socket, s_over->m_wsabuf, 1, NULL, 0, &s_over->m_over, 0);
     if (0 != ret) {
         auto err_no = WSAGetLastError();
         if (WSA_IO_PENDING != err_no)
@@ -38,10 +38,10 @@ void send_packet(int Packet_id, void* pPacket)
 
 void send_login_ok_packet(int Packet_id)
 {
-    s2c_login_ok PacketLoginOk;
+    S2CAckLoginOK PacketLoginOk;
     PacketLoginOk.id = Packet_id;
     PacketLoginOk.size = sizeof(PacketLoginOk);
-    PacketLoginOk.type = S2C_LOGIN_OK;
+    PacketLoginOk.type = S2C_Ack_Login_OK;
     send_packet(Packet_id, &PacketLoginOk);
 }
 
@@ -77,20 +77,22 @@ int get_new_player_id(SOCKET p_socket)
 
 void send_add_player(int Client_id, int Pakcet_id)
 {
-    s2c_add_player PacketAddPlayer;
+    S2CAddPlayer PacketAddPlayer;
     PacketAddPlayer.id = Pakcet_id;
     PacketAddPlayer.size = sizeof(PacketAddPlayer);
-    PacketAddPlayer.type = S2C_ADD_PLAYER;
+    PacketAddPlayer.type = S2C_Add_Player;
     send_packet(Client_id, &PacketAddPlayer);
 }
-void send_remove_player(int Client_id, int Pakcet_id)
+void send_ack_draw_card(int Client_id, int Pakcet_id,int CNum,int CType)
 {
-    s2c_remove_player PacketRem;
-    p.id = Pakcet_id;
-    p.size = sizeof(p);
-    p.type = S2C_REMOVE_PLAYER;
+    S2CAckDrawCard PacketDrawCard;
+    PacketDrawCard.id = Pakcet_id;
+    PacketDrawCard.size = sizeof(Pakcet_id);
+    PacketDrawCard.type = S2C_Ack_DrawCard;
+    PacketDrawCard.CardNum = CNum;
+    PacketDrawCard.CardNum = CType;
 
-    send_packet(Client_id, &p);
+    send_packet(Client_id, &PacketDrawCard);
 }
 
 void send_move_packet(int c_id, int p_id)
